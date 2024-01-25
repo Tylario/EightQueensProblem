@@ -1,0 +1,223 @@
+<html>
+<script>
+    // Tyler Hudson
+    // Eight Queens Problem
+    // 2/25/2024
+    // This program uses the hill climbing algorithm with random restarts
+
+    var boardSize = 8;
+    var board = new Array(boardSize);
+    var boardNeighbors = new Array(boardSize * (boardSize - 1));
+    var stateChanges = 0;
+    var restarts = 0;
+
+    init();
+
+    function init()
+    {
+        // Populate the board
+        for (var i = 0; i < boardSize; i++) {
+            board[i] = new Array(boardSize);
+        }
+
+        placeQueens();
+        printBoard();
+        printHeuristics(board);
+
+        while (returnHeuristics(board) > 0)
+        {
+
+            //find neighbors
+            boardNeighbors = findNeighbors(board);
+
+            //find heuristics for all neighbors
+            let neighborHeuristics = [];
+            for (var i = 0; i < boardNeighbors.length; i++)
+            {
+                neighborHeuristics.push(returnHeuristics(boardNeighbors[i]));
+            }
+
+            //find lowest heuristic
+            let lowestHeuristic = neighborHeuristics[0];
+
+            for (var i = 0; i < neighborHeuristics.length; i++)
+            {
+                if (neighborHeuristics[i] < lowestHeuristic)
+                {
+                    lowestHeuristic = neighborHeuristics[i];
+                }
+            }            
+
+            var bestNeighborIndex = neighborHeuristics.indexOf(lowestHeuristic);
+
+            if (lowestHeuristic < returnHeuristics(board))
+            {
+                // Set board to the lowest heuristic neighbor
+                board = boardNeighbors[bestNeighborIndex];
+                printBoard();
+                printHeuristics(board);
+                stateChanges++;
+            }
+            else
+            {
+                // Restart
+                document.write("Better solution not found. Restarting...<br><br>");
+                placeQueens();
+                printBoard();
+                printHeuristics(board);
+                restarts++;
+            }
+        }
+
+        document.write("State changes: " + stateChanges + "<br>");
+        document.write("Restarts: " + restarts + "<br>");
+        
+
+    }
+
+    function placeQueens()
+    {
+        // Place the queens on each collumn, randomly on each row. Queens are 1. Empty spaces are 0.
+        for (var i = 0; i < boardSize; i++) {
+            var rand = Math.floor(Math.random() * boardSize);
+            for (var j = 0; j < boardSize; j++) {
+                if (j == rand) {
+                    board[j][i] = 1;
+                } else {
+                    board[j][i] = 0;
+                }
+            }
+        }
+    }
+
+    function findNeighbors(boardToCheck) 
+    {
+        var neighbors = [];
+        for (var col = 0; col < boardSize; col++) {
+            // Find the row in which the queen is placed in the current column
+            var currentQueenRow;
+            for (var row = 0; row < boardSize; row++) {
+                if (boardToCheck[row][col] == 1) {
+                    currentQueenRow = row;
+                    break;
+                }
+            }
+
+            // For each possible row, create a new board with the queen moved to that row
+            for (var newRow = 0; newRow < boardSize; newRow++) {
+                if (newRow !== currentQueenRow) {
+                    var newBoard = JSON.parse(JSON.stringify(boardToCheck)); // Deep copy of the board
+                    newBoard[currentQueenRow][col] = 0; // Remove queen from current position
+                    newBoard[newRow][col] = 1; // Place queen in the new position
+                    neighbors.push(newBoard);
+                }
+            }
+        }
+        return neighbors;
+    }
+
+    function printBoard()
+    {
+        // Print the board
+        for (var i = 0; i < boardSize; i++) {
+            var row = "";
+            for (var j = 0; j < boardSize; j++) {
+                row += board[i][j] + " ";
+            }
+            document.write(row + "<br>");
+        }
+    }
+
+    function printHeuristics(boardToCheck)
+    {
+        // Print the heuristics
+        document.write("Heuristics: " + returnHeuristics(boardToCheck) + "<br><br>");
+    }
+
+    function returnHeuristics(boardToCheck)
+    {
+        var heuristics = 0;
+
+        // For each queen, find number of queens in the same row, column, and diagonal
+        for (var i = 0; i < boardSize; i++) 
+        {
+            for (var j = 0; j < boardSize; j++) 
+            {
+                if (boardToCheck[i][j] == 1)
+                {
+                    heuristics += check(i, j, boardToCheck); 
+                }
+            }
+        }
+
+        return heuristics;
+    }
+
+    function check(row, col, boardToCheck)
+    {
+        var heuristics = 0;
+        // Check the row
+        for (var i = 0; i < boardSize; i++) {
+            if (boardToCheck[row][i] == 1 && i != col) 
+            {
+                heuristics++;
+            }
+        }
+
+        // Check the column
+        for (var i = 0; i < boardSize; i++) {
+            if (boardToCheck[i][col] == 1 && i != row)
+            {
+                heuristics++;
+            }
+        }
+
+        // Check bottom-right diagonal
+        var i = row;
+        var j = col;
+        while (i < boardSize && j < boardSize) {
+            if (boardToCheck[i][j] == 1 && (i != row || j != col)) {
+                heuristics++;
+            }
+            i++;
+            j++;
+        }
+
+        // Check top-left diagonal
+        i = row;
+        j = col;
+        while (i >= 0 && j >= 0) {
+            if (boardToCheck[i][j] == 1 && (i != row || j != col)) {
+                heuristics++;
+            }
+            i--;
+            j--;
+        }
+
+        // Check top-right diagonal
+        i = row;
+        j = col;
+        while (i >= 0 && j < boardSize) {
+            if (boardToCheck[i][j] == 1 && (i != row || j != col)) {
+                heuristics++;
+            }
+            i--;
+            j++;
+        }
+
+        // Check bottom-left diagonal
+        i = row;
+        j = col;
+        while (i < boardSize && j >= 0) {
+            if (boardToCheck[i][j] == 1 && (i != row || j != col)) {
+                heuristics++;
+            }
+            i++;
+            j--;
+        }
+
+        return heuristics;
+    }
+
+</script>
+</html>
